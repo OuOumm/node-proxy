@@ -80,9 +80,11 @@ const server = http.createServer(function (req, res) {
     
     // 判断matchingPrefix = /porxy/
     if(matchingPrefix == '/proxy/'){
-      // 取出req.url的域名，例如 https://expload.com/static/img/bg_big.jpg 取https://expload.com/作为目标地址
+      // 取出req.url的域名，例如 https://expload.com/static/bg.jpg 取https://expload.com
       const parsedUrl = new URL(req.url);
-      config.target = parsedUrl.protocol + '//' + parsedUrl.host + '/';
+      config.target = parsedUrl.origin;
+      // 获取url路径 /static/bg.jpg
+      req.url = req.url.substring(parsedUrl.origin.length);
     }
 
     proxy.web(req, res, {
