@@ -3,8 +3,9 @@ const http = require('http');
 const fs = require('fs');
 const { createProxyServer } = require('http-proxy');
 
-// 定义首页缓存
-let IndexData;
+// 定义文件缓存
+let indexData;
+let faviconData;
 
 // 定义白名单
 // const whitelist = [''];
@@ -72,52 +73,66 @@ const server = http.createServer(function (req, res) {
   // }
 
   // 查找匹配的代理配置
-  const matchingPrefix = [...proxyConfigs.keys()].find(prefix => req.url.startsWith(prefix));
+  try {
+    const matchingPrefix = [...proxyConfigs.keys()].find(prefix => req.url.startsWith(prefix));
 
-  if (matchingPrefix) {
-    const config = proxyConfigs.get(matchingPrefix);
-    req.url = req.url.substring(matchingPrefix.length);
+    if (matchingPrefix) {
+      const config = proxyConfigs.get(matchingPrefix);
+      req.url = req.url.substring(matchingPrefix.length);
 
-    // 判断matchingPrefix = /porxy/
-    if (matchingPrefix == '/proxy/') {
-      // 取出req.url的域名，例如 https://expload.com/static/bg.jpg 取https://expload.com
-      const parsedUrl = new URL(req.url);
-      config.target = parsedUrl.origin;
-      // 获取url路径 /static/bg.jpg
-      req.url = parsedUrl.pathname;
-    }
-
-    proxy.web(req, res, {
-      target: config.target, // 设置目标地址
-      secure: true,
-      changeOrigin: true,
-      headers: {
-        'x-epload': 'expload'
+      // 判断matchingPrefix = /porxy/
+      if (matchingPrefix == '/proxy/') {
+        // 取出req.url的域名，例如 https://expload.com/static/bg.jpg 取https://expload.com
+        const parsedUrl = new URL(req.url);
+        config.target = parsedUrl.origin;
+        // 获取url路径 /static/bg.jpg
+        req.url = parsedUrl.pathname;
       }
-    });
 
-    // 如果需要修改响应，则进行处理
-    proxy.once('proxyRes', (proxyRes, req, res) => modifyProxyResponse(config, proxyRes, req, res));
-  } else {
-    // 判断路径是不是/或者空，如果是就返回IndexData
-    if (req.url == '/' || req.url == '') {
-      res.writeHead(200, { 'Content-Type': 'text/html' });
-      res.end(IndexData);
+      proxy.web(req, res, {
+        target: config.target, // 设置目标地址
+        secure: true,
+        changeOrigin: true,
+        headers: {
+          'x-post-server': 'serv02'
+        }
+      });
+
+      // 如果需要修改响应，则进行处理
+      proxy.once('proxyRes', (proxyRes, req, res) => modifyProxyResponse(config, proxyRes, req, res));
     } else {
-      res.writeHead(404);
-      res.end('404 Not Found');
+      // ico
+      if (req.url == '/favicon.ico') {
+        res.writeHead(200, { 'Content-Type': 'image/x-icon' });
+        res.end(faviconData);
+        return;
+      }
+
+      // 判断路径是不是/或者空，如果是就返回IndexData
+      if (req.url == '/' || req.url == '') {
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(IndexData);
+      } else {
+        res.writeHead(404);
+        res.end('404 Not Found');
+      }
     }
+  } catch (e) {
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.end(IndexData);
   }
 });
+
 
 // 监听端口
 const port = process.env.PORT || 23000;
 server.listen(port, () => {
   // 读取首页缓存,不存在则使用默认首页
   try {
-    IndexData = fs.readFileSync('./index.html', 'utf8');
+    indexData = fs.readFileSync('./index.html', 'utf8');
+    faviconData = fs.readFileSync('./favicon.ico');
   } catch (e) {
-    IndexData = 'hello world';
+    indexData = 'hello world';
   }
   console.log(`Proxy server is running on port ${port}`); // 输出启动信息
 });
