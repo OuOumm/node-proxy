@@ -107,10 +107,10 @@ const server = http.createServer(function (req, res) {
         res.end(faviconData);
       }
 
-      // 判断路径是不是/或者空，如果是就返回IndexData
+      // 判断路径是不是/或者空，如果是就返回indexData
       if (req.url == '/' || req.url == '') {
         res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.end(IndexData);
+        res.end(indexData);
       } else {
         res.writeHead(404);
         res.end('404 Not Found');
@@ -118,7 +118,7 @@ const server = http.createServer(function (req, res) {
     }
   } catch (e) {
     res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(IndexData);
+    res.end(indexData);
   }
 });
 
