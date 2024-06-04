@@ -77,14 +77,14 @@ const server = http.createServer(function (req, res) {
   if (matchingPrefix) {
     const config = proxyConfigs.get(matchingPrefix);
     req.url = req.url.substring(matchingPrefix.length);
-    
+
     // 判断matchingPrefix = /porxy/
-    if(matchingPrefix == '/proxy/'){
+    if (matchingPrefix == '/proxy/') {
       // 取出req.url的域名，例如 https://expload.com/static/bg.jpg 取https://expload.com
       const parsedUrl = new URL(req.url);
       config.target = parsedUrl.origin;
       // 获取url路径 /static/bg.jpg
-      req.url = req.url.substring(parsedUrl.origin.length);
+      req.url = parsedUrl.pathname;
     }
 
     proxy.web(req, res, {
