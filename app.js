@@ -105,7 +105,6 @@ const server = http.createServer(function (req, res) {
       if (req.url == '/favicon.ico') {
         res.writeHead(200, { 'Content-Type': 'image/x-icon' });
         res.end(faviconData);
-        return;
       }
 
       // 判断路径是不是/或者空，如果是就返回IndexData
