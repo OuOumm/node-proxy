@@ -32,9 +32,8 @@ const handleRequest = (req, res, statusCode = 404, contentType = 'text/plain', c
 };
 
 const server = http.createServer((req, res) => {
-  const url = req.url;
-  if (url === '/' || url === '') { return handleRequest(req, res, 200, 'text/html', indexData); }
-  if (url.includes('favicon.ico')) { return handleRequest(req, res, 200, 'image/x-icon', faviconData); }
+  if (req.url === '/' || req.url === '') { return handleRequest(req, res, 200, 'text/html', indexData); }
+  if (req.url.includes('favicon.ico')) { return handleRequest(req, res, 200, 'image/x-icon', faviconData); }
 
   const matchingPrefix = [...proxyConfigs.keys()].find(prefix => url.startsWith(prefix));
   if (matchingPrefix) {
