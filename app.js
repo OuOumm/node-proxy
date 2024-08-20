@@ -35,10 +35,10 @@ const server = http.createServer((req, res) => {
   if (req.url === '/' || req.url === '') { return handleRequest(req, res, 200, 'text/html', indexData); }
   if (req.url.includes('favicon.ico')) { return handleRequest(req, res, 200, 'image/x-icon', faviconData); }
 
-  const matchingPrefix = [...proxyConfigs.keys()].find(prefix => url.startsWith(prefix));
+  const matchingPrefix = [...proxyConfigs.keys()].find(prefix => req.url.startsWith(prefix));
   if (matchingPrefix) {
     req.proxyConfig = proxyConfigs.get(matchingPrefix);
-    req.url = url.slice(matchingPrefix.length);
+    req.url = req.url.slice(matchingPrefix.length);
 
     if (matchingPrefix === '/proxy/') {
       try {
