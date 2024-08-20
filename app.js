@@ -2,97 +2,70 @@ const http = require('http');
 const fs = require('fs').promises;
 const { createProxyServer } = require('http-proxy');
 
-// 定义配置参数
-let indexData = 'hello world';
+// 预加载文件并设置全局变量
+let indexData;
 let faviconData;
-let proxyConfig;
-let matchingPrefix;
+
 const defaultHeaders = {
-  'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'
+  'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
 };
 
-// 创建代理对象
+// 创建并配置代理服务器
 const proxy = createProxyServer({});
-
-// 定义反代配置
 const proxyConfigs = new Map([
-  ['/gh/', { target: 'https://gcore.jsdelivr.net/gh/', headers: {} }],
+  ['/gh/OuOumm/', { target: 'https://gcore.jsdelivr.net/gh/OuOumm/' }],
   ['/i/', {
-    target: 'https://expload.com/i/',
-    headers: {},
-    modifyResponse: true,
-    modifyCallback: (proxyRes, req, res) => {
-      delete proxyRes.headers['content-disposition'];
-      const fileExtension = req.url.split('.').pop().toLowerCase();
-      const mimeTypes = {'webp': 'image/webp'};
-      if(fileExtension in mimeTypes){
-        proxyRes.headers['content-type'] = mimeTypes[fileExtension];
-      }
-    }
-  }],
-  ['/proxy/', { target: '', headers: {} }]
+    target: 'https://expload.com/img/',
+    modifyCallback: (proxyRes) => {
+      proxyRes.headers['content-disposition'] = 'inline';
+    },
+  }]
 ]);
 
 proxy.on('proxyRes', (proxyRes, req, res) => {
-  if (matchingPrefix) {
-    if (proxyConfig.modifyResponse && typeof proxyConfig.modifyCallback === 'function') {
-      proxyConfig.modifyCallback(proxyRes, req, res);
-    }
-  }
+  req.proxyConfig?.modifyCallback?.(proxyRes, req, res);
 });
 
-const server = http.createServer((req, res) => {
-  matchingPrefix = [...proxyConfigs.keys()].find(prefix => req.url.startsWith(prefix));
+const handleRequest = (req, res, statusCode = 404, contentType = 'text/plain', content = '404 Not Found') => {
+  res.writeHead(statusCode, { 'Content-Type': contentType });
+  res.end(content);
+};
 
+const server = http.createServer((req, res) => {
+  const url = req.url;
+  if (url === '/' || url === '') { return handleRequest(req, res, 200, 'text/html', indexData); }
+  if (url.includes('favicon.ico')) { return handleRequest(req, res, 200, 'image/x-icon', faviconData); }
+
+  const matchingPrefix = [...proxyConfigs.keys()].find(prefix => url.startsWith(prefix));
   if (matchingPrefix) {
-    proxyConfig = proxyConfigs.get(matchingPrefix);
-    req.url = req.url.substring(matchingPrefix.length);
+    req.proxyConfig = proxyConfigs.get(matchingPrefix);
+    req.url = url.slice(matchingPrefix.length);
 
     if (matchingPrefix === '/proxy/') {
       try {
-        const parsedUrl = new URL(req.url);
-        proxyConfig.target = parsedUrl.origin;
-        req.url = parsedUrl.pathname;
-      } catch (e) {
-        handleRequest(req, res);
-        return;
+        const { origin, pathname } = new URL(req.url);
+        req.proxyConfig.target = origin;
+        req.url = pathname;
+      } catch {
+        return handleRequest(req, res);
       }
     }
 
-    const proxyOptions = {
-      target: proxyConfig.target,
-      secure: true,
-      changeOrigin: true,
-      headers: { ...defaultHeaders, ...proxyConfig.headers },
-      referer: proxyConfig.target
-    };
-
-    proxy.web(req, res, proxyOptions);
-  } else {
-    handleRequest(req, res);
+    return proxy.web(req, res, {
+      target: req.proxyConfig.target,
+      secure: req.proxyConfig.secure || true,
+      changeOrigin: req.proxyConfig.changeOrigin || true,
+      headers: { ...defaultHeaders, ...req.proxyConfig.headers },
+      referer: req.proxyConfig.referer || req.proxyConfig.target
+    });
   }
+
+  return handleRequest(req, res);
 });
-
-const handleRequest = (req, res) => {
-  if (req.url.includes('favicon.ico')) {
-    res.writeHead(200, { 'Content-Type': 'image/x-icon' });
-    res.end(faviconData);
-  } else if (req.url === '/' || req.url === '') {
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(indexData);
-  } else {
-    res.writeHead(404);
-    res.end('404 Not Found');
-  }
-};
 
 const port = process.env.PORT || 23000;
 server.listen(port, async () => {
-  try {
-    indexData = await fs.readFile('./index.html', 'utf8');
-    faviconData = await fs.readFile('./favicon.ico');
-  } catch (e) {
-    console.error('Error reading files:', e);
-  }
+  indexData = await fs.readFile('index.html', 'utf8');
+  faviconData = await fs.readFile('favicon.ico');
   console.log(`Proxy server is running on port ${port}`);
 });
