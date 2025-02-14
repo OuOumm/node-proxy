@@ -25,7 +25,7 @@ const proxyConfigs = new Map([
   ['/i/', {
     // 目标 URL 的域名部分。
     target: 'https://xxxx.com/img/',
-    // 修改响应头中的 Content-Type 为 application/json。
+    // 待匹配响应头 Content-Type 为 application/json。
     contentType: 'application/json',
     // 自定义回调函数，在代理响应到来时修改响应头。
     modifyCallback: (proxyRes) => proxyRes.headers['content-disposition'] = 'inline',
