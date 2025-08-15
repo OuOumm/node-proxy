@@ -1,21 +1,29 @@
-# Node-Proxy
+# 🚀 Node-Proxy - 轻量级HTTP代理服务器
 
-这是一个基于 Node.js 和 `http-proxy` 库构建的简单 HTTP 代理服务器。它允许根据 URL 前缀将请求代理到不同的目标服务器，并提供了自定义请求头、动态目标解析等功能。
+欢迎来到 Node-Proxy 的世界！这是一个基于 Node.js 和 `http-proxy` 库构建的轻量级 HTTP 代理服务器。它允许根据 URL 前缀将请求代理到不同的目标服务器，并提供了自定义请求头、动态目标解析等强大功能。🚀
 
----
-
-## 功能
-
-- **基于 URL 前缀的路由**：根据 URL 前缀将请求代理到不同的目标服务器。
-- **动态目标解析**：动态解析 `/proxy/` 路径的目标服务器。
-- **自定义请求头**：为代理请求添加自定义请求头。
-- **静态文件服务**：提供 `index.html` 和 `favicon.ico` 等静态文件。
-- **错误处理**：提供友好的错误信息和状态码。
-- **日志记录**：记录请求和代理操作的日志。
+> ⚠️ **重要提示**：本项目需要 Node.js 22 或更高版本才能运行。
 
 ---
 
-## 安装
+## 🌟 功能亮点
+
+- **基于 URL 前缀的路由**：根据 URL 前缀将请求智能路由到不同的目标服务器。
+- **动态目标解析**：通过 `/proxy/` 路径动态解析目标服务器，灵活应对各种场景。
+- **自定义请求头**：为代理请求添加自定义请求头，满足个性化需求。
+- **静态文件服务**：内置静态文件服务，轻松提供 `index.html` 和 `favicon.ico` 等文件。
+- **优雅的错误处理**：提供友好的错误信息和状态码，便于调试和问题排查。
+
+---
+
+## 🚀 快速开始
+
+### 环境要求
+
+- Node.js 22 或更高版本
+- npm（通常随 Node.js 一起安装）
+
+### 安装步骤
 
 1. 克隆仓库：
    ```bash
@@ -37,25 +45,25 @@
    node app.js
    ```
 
+服务器将运行在 `http://localhost:23000`。
+
 ---
 
-## 配置
+## ⚙️ 配置指南
 
-代理服务器通过 `Config` 对象进行配置，包含端口设置和代理规则数组。
+Node-Proxy 通过简单的配置对象来定义代理规则，让您可以轻松自定义代理行为。
 
 ### 示例配置
 
 ```javascript
-const Config = {
-  PORT: 23000,
-  PROXY_RULES: [
-    { prefix: '/p/', target: 'https://example.com/p/', headers: { 'x-test': 'proxy' } },
-    { prefix: '/proxy/', isDynamic: true },
-  ],
-};
+const PORT = 23000;
+const PROXY_RULES = [
+  { prefix: '/i/', target: 'https://example.com/p/', headers: { 'x-test': 'test' } },
+  { prefix: '/proxy/', isDynamic: true },
+];
 ```
 
-### 配置选项
+### 配置选项详解
 
 - **`PORT`**：服务器监听的端口号。
 - **`PROXY_RULES`**：代理规则数组，每个规则包含：
@@ -66,7 +74,7 @@ const Config = {
 
 ---
 
-## 使用
+## 📖 使用说明
 
 ### 启动服务器
 
@@ -78,77 +86,44 @@ node app.js
 
 服务器将运行在 `http://localhost:23000`。
 
-### 代理请求
+### 代理请求示例
 
 - **静态文件**：
   - 访问 `http://localhost:23000/` 以提供 `index.html`。
   - 访问 `http://localhost:23000/favicon.ico` 以提供 `favicon.ico`。
 
 - **静态代理**：
-  - 访问 `http://localhost:23000/p/` 以将请求代理到 `https://example.com/p/`。
+  - 访问 `http://localhost:23000/i/` 以将请求代理到 `https://example.com/p/`。
 
 - **动态代理**：
   - 访问 `http://localhost:23000/proxy/http://example.com/` 以动态将请求代理到 `http://example.com/`。
 
 ---
 
-## 代码概述
+## 🧠 代码解析
 
-### 关键组件
+### 核心组件
 
-1. **`Config`**：
-   - 配置对象，包含端口设置和代理规则数组。
+1. **全局配置**：
+   - `PORT`：定义服务器监听的端口号。
+   - `PROXY_RULES`：定义代理规则数组。
 
-2. **`Logger`**：
-   - 日志工具，用于记录请求、响应和错误信息。
+2. **代理服务器**：
+   - 使用 `http-proxy` 库创建代理服务器实例。
 
-3. **`ProxyServer` 类**：
-   - 代理服务器的核心类，负责创建代理、处理请求和响应。
-
-4. **`handleRequest` 方法**：
-   - 处理传入的请求，提供静态文件或代理响应。
-
-5. **`processProxy` 方法**：
-   - 处理代理请求，根据规则确定目标服务器。
+3. **请求处理器**：
+   - `handleRequest` 函数处理所有传入的请求，提供静态文件或代理响应。
 
 ---
 
-## 示例请求
-
-### 提供静态文件
-
-- **首页**：
-  ```bash
-  curl http://localhost:23000/
-  ```
-
-- **Favicon**：
-  ```bash
-  curl http://localhost:23000/favicon.ico
-  ```
-
-### 代理请求
-
-- **静态代理**：
-  ```bash
-  curl http://localhost:23000/p/some-path
-  ```
-
-- **动态代理**：
-  ```bash
-  curl http://localhost:23000/proxy/http://example.com/
-  ```
-
----
-
-## 自定义
+## 🛠️ 自定义配置
 
 ### 添加新的代理路由
 
-要添加新的代理路由，修改 `Config.PROXY_RULES` 数组：
+要添加新的代理路由，只需修改 `PROXY_RULES` 数组：
 
 ```javascript
-Config.PROXY_RULES.push({
+PROXY_RULES.push({
   prefix: '/new-route/',
   target: 'https://new-target.com/',
   headers: { 'X-Custom-Header': 'value' },
@@ -158,7 +133,7 @@ Config.PROXY_RULES.push({
 ### 添加动态代理路由
 
 ```javascript
-Config.PROXY_RULES.push({
+PROXY_RULES.push({
   prefix: '/dynamic/',
   isDynamic: true,
 });
@@ -166,13 +141,13 @@ Config.PROXY_RULES.push({
 
 ---
 
-## 许可证
+## 📄 许可证
 
 本项目基于 MIT 许可证。详情请参阅 [LICENSE](LICENSE) 文件。
 
 ---
 
-## 贡献
+## 🤝 贡献
 
 欢迎贡献！如有任何改进或 bug 修复，请提交 issue 或 pull request。
 
