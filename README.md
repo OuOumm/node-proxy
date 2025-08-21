@@ -1,4 +1,4 @@
-# 🚀 Node-Proxy - 轻量级HTTP代理服务器
+# 🚀 Node-Proxy - 轻量级HTTP代理服务器 （该项目已弃用，请跳转至[fastify-proxy](https://github.com/OuOumm/fastify-proxy)）
 
 欢迎来到 Node-Proxy 的世界！这是一个基于 Node.js 和 `http-proxy` 库构建的轻量级 HTTP 代理服务器。它允许根据 URL 前缀将请求代理到不同的目标服务器，并提供了自定义请求头、动态目标解析等强大功能。🚀
 
